@@ -2,6 +2,7 @@
 #include "tools.h"
 #include "Eigen/Dense"
 #include <iostream>
+#include <cmath>
 
 using namespace std;
 using Eigen::MatrixXd;
@@ -52,26 +53,37 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    *  Initialization
    ****************************************************************************/
   if (!is_initialized_) {
-    /**
-    TODO:
-      * Initialize the state ekf_.x_ with the first measurement.
-      * Create the covariance matrix.
-      * Remember: you'll need to convert radar from polar to cartesian coordinates.
-    */
     // first measurement
     cout << "EKF: " << endl;
     ekf_.x_ = VectorXd(4);
     ekf_.x_ << 1, 1, 1, 1;
 
+    ekf_.P_ = MatrixXd(4, 4);
+    ekf_.P_ << 1000, 0, 0, 0,
+               0, 1000, 0, 0,
+               0, 0, 1000, 0,
+               0, 0, 0, 1000;
+
+    VectorXd raw_meas = measurement_pack.raw_measurements_;
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
       /**
       Convert radar from polar to cartesian coordinates and initialize state.
       */
+      double x_proj = cos(raw_meas[1]);
+      double y_proj = sin(raw_meas[1]);
+      ekf_.x_[0] = raw_meas[0] * x_proj;
+      ekf_.x_[1] = raw_meas[0] * y_proj;
+      ekf_.x_[2] = raw_meas[2] * x_proj;
+      ekf_.x_[3] = raw_meas[2] * y_proj;
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
       /**
       Initialize state.
       */
+      ekf_.x_[0] = raw_meas[0];
+      ekf_.x_[1] = raw_meas[1];
+      ekf_.x_[2] = 0;
+      ekf_.x_[3] = 0;
     }
 
     // done initializing, no need to predict or update
