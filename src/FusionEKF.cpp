@@ -114,10 +114,11 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
   int noise_ax = 9;
   int noise_ay = 9;
-  long dt = current_timestamp_ - previous_timestamp_;
-  long dt_2 = dt * dt;
-  long dt_3 = dt * dt_2;
-  long dt_4 = dt * dt_3;
+  // dt expressed in seconds
+  float dt = (current_timestamp_ - previous_timestamp_) / 1000000.0;
+  float dt_2 = dt * dt;
+  float dt_3 = dt * dt_2;
+  float dt_4 = dt * dt_3;
 
   ekf_.F_(0, 2) = dt;
   ekf_.F_(1, 3) = dt;
@@ -149,6 +150,10 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     // Radar updates
   } else {
     // Laser updates
+    VectorXd z = VectorXd(2);
+    z << measurement_pack.raw_measurements_[0],
+         measurement_pack.raw_measurements_[1];
+    ekf_.Update(z, R_laser_);
   }
 
   // print the output
