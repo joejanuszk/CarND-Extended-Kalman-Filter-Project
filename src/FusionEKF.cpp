@@ -59,12 +59,27 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     ekf_.x_ << 1, 1, 1, 1;
 
     ekf_.P_ = MatrixXd(4, 4);
-    ekf_.P_ << 1000, 0, 0, 0,
-               0, 1000, 0, 0,
+    ekf_.P_ << 1, 0, 0, 0,
+               0, 1, 0, 0,
                0, 0, 1000, 0,
                0, 0, 0, 1000;
 
     VectorXd raw_meas = measurement_pack.raw_measurements_;
+
+    ekf_.F_ = MatrixXd(4, 4);
+    ekf_.F_ << 1, 0, 0, 0,
+               0, 1, 0, 0,
+               0, 0, 1, 0,
+               0, 0, 0, 1;
+
+    ekf_.Q_ = MatrixXd(4, 4);
+    ekf_.Q_ << 0, 0, 0, 0,
+               0, 0, 0, 0,
+               0, 0, 0, 0,
+               0, 0, 0, 0;
+
+    previous_timestamp_ = measurement_pack.timestamp_;
+
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
       /**
       Convert radar from polar to cartesian coordinates and initialize state.
@@ -95,13 +110,28 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
    *  Prediction
    ****************************************************************************/
 
-  /**
-   TODO:
-     * Update the state transition matrix F according to the new elapsed time.
-      - Time is measured in seconds.
-     * Update the process noise covariance matrix.
-     * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
-   */
+  long long current_timestamp_ = measurement_pack.timestamp_;
+
+  int noise_ax = 9;
+  int noise_ay = 9;
+  long dt = current_timestamp_ - previous_timestamp_;
+  long dt_2 = dt * dt;
+  long dt_3 = dt * dt_2;
+  long dt_4 = dt * dt_3;
+
+  ekf_.F_(0, 2) = dt;
+  ekf_.F_(1, 3) = dt;
+
+  ekf_.Q_(0, 0) = dt_4 / 4 * noise_ax;
+  ekf_.Q_(1, 1) = dt_4 / 4 * noise_ay;
+  ekf_.Q_(2, 2) = dt_2 * noise_ax;
+  ekf_.Q_(3, 3) = dt_2 * noise_ay;
+  ekf_.Q_(0, 2) = dt_3 / 2 * noise_ax;
+  ekf_.Q_(2, 0) = dt_3 / 2 * noise_ax;
+  ekf_.Q_(1, 3) = dt_3 / 2 * noise_ay;
+  ekf_.Q_(3, 1) = dt_3 / 2 * noise_ay;
+
+  previous_timestamp_ = current_timestamp_;
 
   ekf_.Predict();
 
