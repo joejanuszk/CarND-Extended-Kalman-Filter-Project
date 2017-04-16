@@ -1,6 +1,5 @@
 #include <math.h>
 #include "kalman_filter.h"
-#include "tools.h"
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -43,7 +42,6 @@ void KalmanFilter::Update(const VectorXd &z, const MatrixXd &R) {
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z, const MatrixXd &R) {
-  Tools tools;
   VectorXd z_pred = tools.CalculateZpred(x_);
   VectorXd y = z - z_pred;
   // normalize phi between -pi and +pi
