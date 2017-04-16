@@ -1,4 +1,5 @@
 #include "kalman_filter.h"
+#include "tools.h"
 
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -40,9 +41,11 @@ void KalmanFilter::Update(const VectorXd &z, const MatrixXd &R) {
   P_ = (I - K * H_) * P_;
 }
 
-void KalmanFilter::UpdateEKF(const VectorXd &z) {
+void KalmanFilter::UpdateEKF(const VectorXd &z, const MatrixXd &R) {
   /**
   TODO:
     * update the state by using Extended Kalman Filter equations
   */
+  Tools tools;
+  VectorXd z_pred = tools.CalculateZpred(x_);
 }
