@@ -1,3 +1,4 @@
+#include <math.h>
 #include "kalman_filter.h"
 #include "tools.h"
 
@@ -48,4 +49,22 @@ void KalmanFilter::UpdateEKF(const VectorXd &z, const MatrixXd &R) {
   */
   Tools tools;
   VectorXd z_pred = tools.CalculateZpred(x_);
+  VectorXd y = z - z_pred;
+  // normalize phi between -pi and +pi
+  while (y(1) < -M_PI) {
+      y(1) += 2 * M_PI;
+  }
+  while (y(1) > M_PI) {
+      y(1) -= 2 * M_PI;
+  }
+  H_ = tools.CalculateJacobian(x_);
+  MatrixXd Ht = H_.transpose();
+  MatrixXd S = H_ * P_ * Ht + R;
+  MatrixXd Si = S.inverse();
+  MatrixXd K = P_ * Ht * Si;
+
+  x_ = x_ + (K * y);
+  long x_size = x_.size();
+  MatrixXd I = MatrixXd::Identity(x_size, x_size);
+  P_ = (I - K * H_) * P_;
 }

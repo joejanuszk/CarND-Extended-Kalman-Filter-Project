@@ -39,23 +39,46 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
 }
 
 MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
-  /**
-  TODO:
-    * Calculate a Jacobian here.
-  */
-}
-
-VectorXd Tools::CalculateZpred(const VectorXd &x_state) {
-  VectorXd z_pred = VectorXd(3);
   double px = x_state(0);
   double py = x_state(1);
   double vx = x_state(2);
   double vy = x_state(2);
-  double px2 = px * px;
-  double py2 = py * py;
-  double sqrt_px2_py2 = std::sqrt(px2 + py2);
-  z_pred(0) = sqrt_px2_py2;
-  z_pred(1) = std::atan2(px, py);
-  z_pred(2) = (px * vx + py * vy) / sqrt_px2_py2;
+
+  double c1 = px * px + py * py;
+  double c2 = std::sqrt(c1);
+  double c3 = c1 * c2;
+
+  MatrixXd Hj = MatrixXd(3, 4);
+  if (std::fabs(c1) < 0.0001) {
+      std::cout << "CalculateJacobian() Error - Division by Zero\n";
+      return Hj;
+  }
+
+  Hj << (px/c2), (py/c2), 0, 0,
+        -(py/c1), (px/c1), 0, 0,
+        py*(vx*py - vy*px)/c3, px*(px*vy - py*vx)/c3, px/c2, py/c2;
+
+  return Hj;
+}
+
+VectorXd Tools::CalculateZpred(const VectorXd &x_state) {
+  double px = x_state(0);
+  double py = x_state(1);
+  double vx = x_state(2);
+  double vy = x_state(2);
+
+  double c1 = px * px + py * py;
+  double c2 = std::sqrt(c1);
+
+  VectorXd z_pred = VectorXd(3);
+  if (std::fabs(c1) < 0.0001 || px < 0.001) {
+      std::cout << "CalculateZpred() Error - Division by Zero\n";
+      return z_pred;
+  }
+
+  z_pred(0) = c2;
+  z_pred(1) = std::atan2(py, px);
+  z_pred(2) = (px*vx + py*vy)/c2;
+
   return z_pred;
 }
