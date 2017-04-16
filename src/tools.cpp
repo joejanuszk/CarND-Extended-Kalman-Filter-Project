@@ -65,7 +65,7 @@ VectorXd Tools::CalculateZpred(const VectorXd &x_state) {
   double px = x_state(0);
   double py = x_state(1);
   double vx = x_state(2);
-  double vy = x_state(2);
+  double vy = x_state(3);
 
   double c1 = px * px + py * py;
   double c2 = std::sqrt(c1);
