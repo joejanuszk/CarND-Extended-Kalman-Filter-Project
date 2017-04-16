@@ -43,10 +43,6 @@ void KalmanFilter::Update(const VectorXd &z, const MatrixXd &R) {
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z, const MatrixXd &R) {
-  /**
-  TODO:
-    * update the state by using Extended Kalman Filter equations
-  */
   Tools tools;
   VectorXd z_pred = tools.CalculateZpred(x_);
   VectorXd y = z - z_pred;
