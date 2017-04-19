@@ -10,6 +10,8 @@ Tools::Tools() {}
 
 Tools::~Tools() {}
 
+const double delta = 0.001;
+
 VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
                               const vector<VectorXd> &ground_truth) {
   VectorXd rmse(4);
@@ -39,19 +41,22 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
 }
 
 MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
-  double px = x_state(0);
-  double py = x_state(1);
-  double vx = x_state(2);
-  double vy = x_state(2);
+  const double px = x_state(0);
+  const double py = x_state(1);
+  const double vx = x_state(2);
+  const double vy = x_state(2);
 
-  double c1 = px * px + py * py;
-  double c2 = std::sqrt(c1);
-  double c3 = c1 * c2;
+  const double c1 = px * px + py * py;
+  const double c2 = std::sqrt(c1);
+  const double c3 = c1 * c2;
 
   MatrixXd Hj = MatrixXd(3, 4);
-  if (std::fabs(c1) < 0.0001) {
-      std::cout << "CalculateJacobian() Error - Division by Zero\n";
-      return Hj;
+  if (std::fabs(c1) < delta) {
+    std::cout << "Division by zero in CalculateJacobian() - Returning zero Hj\n";
+    Hj << 0, 0, 0, 0,
+          0, 0, 0, 0,
+          0, 0, 0, 0;
+    return Hj;
   }
 
   Hj << (px/c2), (py/c2), 0, 0,
@@ -62,18 +67,19 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 }
 
 VectorXd Tools::CalculateZpred(const VectorXd &x_state) {
-  double px = x_state(0);
-  double py = x_state(1);
-  double vx = x_state(2);
-  double vy = x_state(3);
+  const double px = x_state(0);
+  const double py = x_state(1);
+  const double vx = x_state(2);
+  const double vy = x_state(3);
 
-  double c1 = px * px + py * py;
-  double c2 = std::sqrt(c1);
+  const double c1 = px * px + py * py;
+  const double c2 = std::sqrt(c1);
 
   VectorXd z_pred = VectorXd(3);
-  if (std::fabs(c1) < 0.0001 || px < 0.001) {
-      std::cout << "CalculateZpred() Error - Division by Zero\n";
-      return z_pred;
+  if (std::fabs(c1) < delta || std::fabs(px) < delta) {
+    std::cout << "Division by zero in CalculateZpred() - Returning zero z_pred\n";
+    z_pred << 0, 0, 0;
+    return z_pred;
   }
 
   z_pred(0) = c2;

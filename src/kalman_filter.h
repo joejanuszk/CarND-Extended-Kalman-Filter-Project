@@ -65,6 +65,11 @@ public:
    */
   void UpdateEKF(const Eigen::VectorXd &z, const Eigen::MatrixXd &R);
 
+  /**
+   * Shared update implementation for normal Update and UpdateEKF
+   */
+  void FinishUpdate(const Eigen::VectorXd &y, const Eigen::MatrixXd &R);
+
   Tools tools;
 };
 
